@@ -63,44 +63,27 @@ const drawMap = () => {
   }
 };
 
-const DIRS = [
-  [0, 1],
-  [-1, 1],
-  [1, 1],
-];
-
-let previousPoint: { x: number; y: number } | null = null;
+const DIRS = [0, -1, 1];
+let result = 0;
 
 const moveDown = (point: { x: number; y: number }) => {
-  for (let i = 0; i < DIRS.length; i++) {
-    const nextPoint = { x: point.x + DIRS[i][0], y: point.y + DIRS[i][1] };
+  const value = MAP[getKey(point)];
+  if (value === ROCK || value === SAND) return;
 
-    if (nextPoint.y > yMax) {
-      if (previousPoint) {
-        MAP[getKey(previousPoint)] = null;
-      }
+  if (point.y >= yMax) {
+    return false;
+  }
+
+  for (let i = 0; i < DIRS.length; i++) {
+    if (moveDown({ x: point.x + DIRS[i], y: point.y + 1 }) === false) {
       return false;
     }
-
-    const nextValue = MAP[getKey(nextPoint)];
-
-    if (nextValue === ROCK || nextValue === SAND) continue;
-
-    MAP[getKey(nextPoint)] = SAND;
-    if (previousPoint && MAP[getKey(previousPoint)] === SAND) {
-      MAP[getKey(previousPoint)] = null;
-    }
-
-    previousPoint = nextPoint;
-    return moveDown(nextPoint);
   }
-  previousPoint = null;
-  return true;
+
+  MAP[getKey(point)] = SAND;
+  result += 1;
 };
 
-let result = 0;
-while (moveDown(START_SAND)) {
-  result += 1;
-}
+moveDown(START_SAND);
 
 console.log("Result -> ", result);
