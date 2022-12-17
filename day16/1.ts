@@ -3,7 +3,7 @@ import { readFile } from "../utils/read-file";
 const file = readFile(__dirname + "/input.txt").split("\n");
 
 const SOURCE = "AA";
-const MINUTES = 30;
+const MINUTES = 26;
 
 const REG_EXP =
   /Valve (\w+) has flow rate=(\d+); tunnels? leads? to valves? (\w+(?:, \w+)*)/;
@@ -64,48 +64,78 @@ const simplify = (
   return distances;
 };
 
-const graph = simplify(SOURCE, data.distances);
-const cache = {};
+const floydWarshall = (graph: Record<string, Record<string, number>>) => {
+  const dist = {};
+  const valves = Object.keys(graph);
 
-const getKey = (current: string, opened: Array<string>, minLeft: number) =>
-  `${current}-${opened.toString()}-${minLeft}`;
+  for (let i = 0; i < valves.length; i++) {
+    const valve = valves[i];
+    const edges = Object.keys(graph[valve]);
+    dist[valve] = {};
+    edges.forEach((e) => (dist[valve][e] = graph[valve][e]));
 
-const backtracking = (
-  current: string,
-  opened: Array<string>,
-  minLeft: number
-) => {
-  if (cache[getKey(current, opened, minLeft)]) {
-    return cache[getKey(current, opened, minLeft)];
+    valves.forEach((n) => {
+      if (dist[valve][n] == undefined) dist[valve][n] = Infinity;
+      if (valve === n) dist[valve][n] = 0;
+    });
   }
 
-  if (minLeft <= 0) {
-    cache[getKey(current, opened, minLeft)] = 0;
-    return 0;
-  }
+  valves.forEach((i) => {
+    valves.forEach((j) => {
+      valves.forEach((k) => {
+        if (dist[i][k] + dist[k][j] < dist[i][j])
+          dist[i][j] = dist[i][k] + dist[k][j];
+      });
+    });
+  });
 
-  let best = 0;
-  const node = graph[current];
-  const children = Object.keys(node);
-  const val = (minLeft - 1) * data[current].rate;
-
-  for (let i = 0; i < children.length; i++) {
-    const nextNode = children[i];
-    const nextTimeLeft = minLeft - node[nextNode];
-
-    if (!opened.includes(current) && val !== 0) {
-      best = Math.max(
-        best,
-        val + backtracking(nextNode, [...opened, current], nextTimeLeft - 1)
-      );
-    }
-    best = Math.max(best, backtracking(nextNode, opened, nextTimeLeft));
-  }
-
-  cache[getKey(current, opened, minLeft)] = best;
-  return best;
+  return dist;
 };
 
-const result = backtracking(SOURCE, [], MINUTES);
+const graph = simplify(SOURCE, data.distances);
+const distances = floydWarshall(graph);
 
-console.log("Result -> ", result);
+function search(current, toOpen, minLeft, path) {
+  const paths: Array<any> = [];
+
+  for (let i = 0; i < toOpen.length; i++) {
+    const valveToOpen = toOpen[i];
+
+    const distance = distances[current][valveToOpen];
+    if (distance >= minLeft) {
+      continue;
+    }
+
+    const nextTimeLeft = minLeft - distance - 1;
+    const flow = nextTimeLeft * data[valveToOpen].rate;
+
+    const nextToOpen = toOpen.filter((i) => i !== valveToOpen);
+
+    const nextPath = [...path];
+    nextPath.push(valveToOpen);
+
+    const fullPath = search(valveToOpen, nextToOpen, nextTimeLeft, nextPath);
+    paths.push({
+      path: path.concat(fullPath.path),
+      flow: fullPath.flow + flow,
+    });
+  }
+
+  let bestPath = { path: [], flow: 0 };
+  paths.forEach((path) => {
+    if (path.flow > bestPath.flow) {
+      bestPath = path;
+    }
+  });
+
+  return bestPath;
+}
+
+const result = search(
+  SOURCE,
+  Object.keys(graph).filter((i) => i !== SOURCE),
+  MINUTES,
+  [SOURCE]
+);
+
+console.log("Result -> ", result.flow);

@@ -20,10 +20,14 @@ if (part !== "1" && part !== "2") {
 }
 
 if (existsSync(day)) {
+  console.time("time");
+
   execSync(`node --loader ts-node/esm/transpile-only ${day}/${part}.ts`, {
     stdio: "inherit",
     cwd: __dirname,
   });
+
+  console.timeEnd("time");
 } else {
   console.error(`Day ${day} not found`);
   process.exit(1);
