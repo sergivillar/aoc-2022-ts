@@ -29,11 +29,11 @@ const getSurfaceCube = () => {
 };
 
 const getWholeCube = () => {
-  const totalCubes: Array<string> = [];
+  const totalCubes = {};
   for (let i = 1; i <= MAX_VALUE; i++) {
     for (let j = 1; j <= MAX_VALUE; j++) {
       for (let k = 1; k <= MAX_VALUE; k++) {
-        totalCubes.push(`${i},${j},${k}`);
+        totalCubes[`${i},${j},${k}`] = 0;
       }
     }
   }
@@ -65,11 +65,11 @@ const getNeighbors = (input: string) => {
   ].map((item) => item.join(","));
 };
 
-let totalCubes: Array<string> = getWholeCube();
+let totalCubesDict = getWholeCube();
 let surfaceCubes: Array<string> = getSurfaceCube();
 
 const visited: Array<string> = [];
-const findBlock = (cube: string) => {
+const countBlocks = (cube: string) => {
   const queue = new Queue();
   queue.enqueue([cube, 6]);
   let total = 0;
@@ -78,7 +78,7 @@ const findBlock = (cube: string) => {
     let [cube, value] = queue.deque() as Array<any>;
 
     if (visited.includes(cube)) continue;
-    totalCubes = totalCubes.filter((item) => item !== cube);
+    totalCubesDict[cube] = 1;
     visited.push(cube);
 
     const neighbors = getNeighbors(cube);
@@ -111,7 +111,7 @@ const removeSurfaceBlocks = (cube: string) => {
 
     if (surfaceVisited.includes(cube)) continue;
 
-    totalCubes = totalCubes.filter((item) => item !== cube);
+    totalCubesDict[cube] = 1;
     surfaceVisited.push(cube);
 
     const neighbors = getNeighbors(cube);
@@ -130,12 +130,12 @@ const removeSurfaceBlocks = (cube: string) => {
   return;
 };
 
-const total = cubes.reduce((acc, cube) => acc + findBlock(cube), 0);
+const total = cubes.reduce((acc, cube) => acc + countBlocks(cube), 0);
 
 surfaceCubes.forEach((cube) => removeSurfaceBlocks(cube));
 
 const visitedAir: Array<string> = [];
-const findAir = (cube: string) => {
+const countAir = (cube: string) => {
   const queue = new Queue();
   queue.enqueue([cube, 6]);
   let total = 0;
@@ -165,6 +165,10 @@ const findAir = (cube: string) => {
   return total;
 };
 
-const air = totalCubes.reduce((acc, cube) => acc + findAir(cube), 0);
+const totalCubesNotSeenYet = Object.entries(totalCubesDict)
+  .filter(([_, seen]) => !seen)
+  .map(([key]) => key);
+
+const air = totalCubesNotSeenYet.reduce((acc, cube) => acc + countAir(cube), 0);
 
 console.log("Result -> ", total - air);
