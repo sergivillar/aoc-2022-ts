@@ -4,7 +4,8 @@
   "description": "Advent of Code 2022",
   "main": "index.ts",
   "scripts": {
-    "execute": "node --loader ts-node/esm/transpile-only index.ts"
+    "execute": "node --loader ts-node/esm/transpile-only index.ts",
+    "prueba": "node --loader ts-node/esm/transpile-only day22/prueba.ts"
   },
   "author": "",
   "license": "ISC",
