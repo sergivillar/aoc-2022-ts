@@ -23,6 +23,7 @@ const MOVES = [
 ];
 
 const rawMap = readFile(__dirname + "/input.txt").split("\n");
+const elfsMap = {};
 
 const getKey = ({ x, y }: { x: number; y: number }) => `${x},${y}`;
 
@@ -31,6 +32,9 @@ const map = rawMap.reduce((acc, lineRaw, row) => {
   for (let i = 0; i < line.length; i++) {
     const char = line[i];
     acc[getKey({ x: i, y: row })] = char;
+    if (char === ELF) {
+      elfsMap[getKey({ x: i, y: row })] = ELF;
+    }
   }
   return acc;
 }, {});
@@ -39,9 +43,10 @@ let currentDirection = 0;
 
 let keepGoing = true;
 let turn = 0;
+
 while (keepGoing) {
   turn++;
-  const elfs = Object.entries(map).filter(([, type]) => type === ELF);
+  const elfs = Object.entries(elfsMap);
   let noElfesMoves = false;
 
   const nextMoves: Record<string, { x: number; y: number }> = {};
@@ -112,6 +117,8 @@ while (keepGoing) {
     if (!duplicated[getKey(next)]) {
       map[current] = GROUND;
       map[getKey(next)] = ELF;
+      delete elfsMap[current];
+      elfsMap[getKey(next)] = ELF;
     }
   });
 
