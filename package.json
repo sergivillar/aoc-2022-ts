@@ -5,7 +5,7 @@
   "main": "index.ts",
   "scripts": {
     "execute": "node --loader ts-node/esm/transpile-only index.ts",
-    "prueba": "node --loader ts-node/esm/transpile-only day22/prueba.ts"
+    "prueba": "node --loader ts-node/esm/transpile-only day24/p.ts"
   },
   "author": "",
   "license": "ISC",
