@@ -117,7 +117,6 @@ const findPath = (startPos: Point, endPos: Point, blizzards, minute) => {
       if (next.y < 1 || next.y >= yMax) continue;
 
       if (
-        (next.x !== START_POS.x || next.y !== START_POS.y) &&
         !blizzardsPos.includes(getKey(next)) &&
         !visited[`${getKey(next)}-${nextTime}`]
       ) {
